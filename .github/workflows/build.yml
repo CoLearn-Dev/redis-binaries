@@ -1,0 +1,34 @@
+on:
+  release:
+    types: [released]
+
+name: Build
+
+jobs:
+  linux-x86_64:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Download Redis
+        run: |
+          wget https://github.com/redis/redis/archive/${{ github.event.release.name }}.tar.gz
+          tar -xzf ${{ github.event.release.name }}.tar.gz
+      - name: Build
+        working-directory: ./redis-${{ github.event.release.name }}
+        run: make CFLAGS="-static" LDFLAGS="-static" -j
+      - name: Pack
+        working-directory: ./redis-${{ github.event.release.name }}
+        run: |
+          cp src/redis-server ./
+          tar -zcvf redis-server.tar.gz redis-server
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: redis-server.tar.gz
+          asset_name: redis-server.tar.gz
+          asset_content_type: application/tar+gzip
