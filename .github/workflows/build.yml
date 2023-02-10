@@ -5,8 +5,15 @@ on:
 name: Build
 
 jobs:
-  linux-x86_64:
-    runs-on: ubuntu-latest
+  build:
+  strategy:
+      matrix:
+        platform: [linux-x86_64, macos-x86_64]
+        include:
+          - platform: linux-x86_64
+            ci_image: ubuntu-latest
+          - platform: macos-x86_64
+            ci_image: macos-latest
     defaults:
       run:
         shell: bash
@@ -22,14 +29,17 @@ jobs:
         working-directory: ./redis-${{ github.event.release.name }}
         run: |
           cp src/redis-server ./
-          tar -zcvf redis-server.tar.gz redis-server
-          cp redis-server.tar.gz ../
+          tar -zcvf redis-server-${{ matrix.platform }}.tar.gz redis-server
+          cp redis-server-${{ matrix.platform }}.tar.gz ../
       - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@v6
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: redis-server.tar.gz
-          asset_name: redis-server.tar.gz
-          asset_content_type: application/tar+gzip
+          script: |
+            const fs = require('fs').promises;
+            github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ github.event.release.id }},
+              name: 'redis-server-${{ matrix.platform }}.tar.gz',
+              data: await fs.readFile('redis-server-${{ matrix.platform }}.tar.gz')
+            });
