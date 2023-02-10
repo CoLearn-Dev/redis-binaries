@@ -12,8 +12,10 @@ jobs:
         include:
           - platform: linux-x86_64
             ci_image: ubuntu-latest
+            make_command: make CFLAGS="-static" LDFLAGS="-static" -j
           - platform: macos-x86_64
             ci_image: macos-latest
+            make_command: make CFLAGS="-static" -j
     runs-on: ${{ matrix.ci_image }}
     defaults:
       run:
@@ -25,7 +27,7 @@ jobs:
           tar -xzf ${{ github.event.release.name }}.tar.gz
       - name: Build
         working-directory: ./redis-${{ github.event.release.name }}
-        run: make CFLAGS="-static" LDFLAGS="-static" -j
+        run: ${{ matrix.make_command }}
       - name: Pack
         working-directory: ./redis-${{ github.event.release.name }}
         run: |
