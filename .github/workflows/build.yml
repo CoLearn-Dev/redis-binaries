@@ -14,10 +14,10 @@ jobs:
         platform: [linux-x86_64, macos-x86_64]
         include:
           - platform: linux-x86_64
-            ci_image: ubuntu-latest
+            ci_image: ubuntu-22.04
             make_command: make CFLAGS="-static" LDFLAGS="-static" -j
           - platform: macos-x86_64
-            ci_image: macos-latest
+            ci_image: macos-12
             make_command: make CFLAGS="-static" -j
     runs-on: ${{ matrix.ci_image }}
     defaults:
