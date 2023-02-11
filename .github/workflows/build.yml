@@ -4,6 +4,9 @@ on:
 
 name: Build
 
+env:
+  REDIS_VERSION: 7.0.8
+
 jobs:
   build:
     strategy:
@@ -23,13 +26,13 @@ jobs:
     steps:
       - name: Download Redis
         run: |
-          wget https://github.com/redis/redis/archive/${{ github.event.release.name }}.tar.gz
-          tar -xzf ${{ github.event.release.name }}.tar.gz
+          wget https://github.com/redis/redis/archive/${{ env.REDIS_VERSION }}.tar.gz
+          tar -xzf ${{ env.REDIS_VERSION }}.tar.gz
       - name: Build
-        working-directory: ./redis-${{ github.event.release.name }}
+        working-directory: ./redis-${{ env.REDIS_VERSION }}
         run: ${{ matrix.make_command }}
       - name: Pack
-        working-directory: ./redis-${{ github.event.release.name }}
+        working-directory: ./redis-${{ env.REDIS_VERSION }}
         run: |
           cp src/redis-server ./
           tar -zcvf redis-server-${{ matrix.platform }}.tar.gz redis-server
